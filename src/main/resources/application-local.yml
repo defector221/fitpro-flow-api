@@ -1,0 +1,20 @@
+# Active with: mvn spring-boot:run -Dspring-boot.run.profiles=local
+# Or: SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/fitpro
+    username: fitpro
+    password: fitpro
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+server:
+  port: 9092
+
+logging:
+  level:
+    com.fitpro: DEBUG
+    org.flywaydb: INFO

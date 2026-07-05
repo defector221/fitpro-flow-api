@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fitpro-postgres
+    environment:
+      POSTGRES_DB: fitpro
+      POSTGRES_USER: fitpro
+      POSTGRES_PASSWORD: fitpro
+    ports:
+      - "5432:5432"
+    volumes:
+      - fitpro_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fitpro -d fitpro"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fitpro-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: .
+    container_name: fitpro-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/fitpro
+      DATABASE_USERNAME: fitpro
+      DATABASE_PASSWORD: fitpro
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: fitpro-dev-secret-change-in-production-min-256-bits-long-key!!
+      PORT: 9092
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+      SEED_ENABLED: "true"
+    ports:
+      - "9092:9092"
+
+volumes:
+  fitpro_pg_data:
