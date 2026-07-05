@@ -13,19 +13,38 @@ import java.util.UUID;
 
 public interface MemberCheckInRepository extends JpaRepository<MemberCheckIn, UUID> {
 
-    @Query("SELECT c FROM MemberCheckIn c JOIN Member m ON c.memberId = m.id " +
-           "WHERE m.gymId = :gymId AND c.checkInAt >= :start AND c.checkInAt < :end")
+    @Query("""
+        SELECT COUNT(c)
+        FROM MemberCheckIn c
+        JOIN Member m ON c.memberId = m.id
+        WHERE m.gymId = :gymId
+          AND c.checkInAt >= :start
+          AND c.checkInAt < :end
+        """)
     long countByGymAndDateRange(
             @Param("gymId") UUID gymId,
             @Param("start") Instant start,
             @Param("end") Instant end);
 
-    @Query("SELECT c FROM MemberCheckIn c JOIN Member m ON c.memberId = m.id " +
-           "WHERE m.gymId = :gymId ORDER BY c.checkInAt DESC")
-    Page<MemberCheckIn> findRecentByGym(@Param("gymId") UUID gymId, Pageable pageable);
+    @Query("""
+        SELECT c
+        FROM MemberCheckIn c
+        JOIN Member m ON c.memberId = m.id
+        WHERE m.gymId = :gymId
+        ORDER BY c.checkInAt DESC
+        """)
+    Page<MemberCheckIn> findRecentByGym(
+            @Param("gymId") UUID gymId,
+            Pageable pageable);
 
-    @Query("SELECT c FROM MemberCheckIn c JOIN Member m ON c.memberId = m.id " +
-           "WHERE m.gymId = :gymId AND c.checkInAt >= :start ORDER BY c.checkInAt DESC")
+    @Query("""
+        SELECT c
+        FROM MemberCheckIn c
+        JOIN Member m ON c.memberId = m.id
+        WHERE m.gymId = :gymId
+          AND c.checkInAt >= :start
+        ORDER BY c.checkInAt DESC
+        """)
     List<MemberCheckIn> findTodayByGym(
             @Param("gymId") UUID gymId,
             @Param("start") Instant start);

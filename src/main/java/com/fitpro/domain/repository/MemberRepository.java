@@ -18,19 +18,22 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
     Page<Member> findByGymId(UUID gymId, Pageable pageable);
 
     @Query("""
-            SELECT m FROM Member m WHERE m.gymId = :gymId
-            AND (:search IS NULL OR LOWER(m.firstName) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(m.lastName) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR m.phone LIKE CONCAT('%', :search, '%')
-                OR m.memberCode LIKE CONCAT('%', :search, '%'))
-            AND (:status IS NULL OR m.status = :status)
-            """)
+    SELECT m FROM Member m
+    WHERE m.gymId = :gymId
+      AND (
+            :search = ''
+            OR LOWER(m.firstName) LIKE LOWER(CONCAT('%', :search, '%'))
+            OR LOWER(m.lastName) LIKE LOWER(CONCAT('%', :search, '%'))
+            OR m.phone LIKE CONCAT('%', :search, '%')
+            OR m.memberCode LIKE CONCAT('%', :search, '%')
+      )
+      AND (:status IS NULL OR m.status = :status)
+    """)
     Page<Member> search(
             @Param("gymId") UUID gymId,
             @Param("search") String search,
             @Param("status") MemberStatus status,
             Pageable pageable);
-
     Optional<Member> findByGymIdAndMemberCode(UUID gymId, String memberCode);
 
     long countByGymIdAndCreatedAtAfter(UUID gymId, Instant after);
