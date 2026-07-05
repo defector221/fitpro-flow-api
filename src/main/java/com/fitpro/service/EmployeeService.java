@@ -27,6 +27,7 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final SecurityUtils securityUtils;
     private final AuditService auditService;
+    private final FileStorageService fileStorageService;
 
     public PageResponse<EmployeeResponse> list(String search, EmploymentStatus status, int page, int size) {
         UUID gymId = securityUtils.currentUser().getGymId();
@@ -63,6 +64,7 @@ public class EmployeeService {
                 .emergencyPhone(request.getEmergencyPhone())
                 .department(request.getDepartment())
                 .designation(request.getDesignation())
+                .photoUrl(request.getPhotoUrl())
                 .joiningDate(request.getJoiningDate())
                 .basicSalary(request.getBasicSalary())
                 .employmentStatus(EmploymentStatus.ACTIVE)
@@ -81,13 +83,28 @@ public class EmployeeService {
         if (request.getLastName() != null) employee.setLastName(request.getLastName());
         if (request.getEmail() != null) employee.setEmail(request.getEmail());
         if (request.getPhone() != null) employee.setPhone(request.getPhone());
+        if (request.getDateOfBirth() != null) employee.setDateOfBirth(request.getDateOfBirth());
+        if (request.getGender() != null) employee.setGender(request.getGender());
+        if (request.getAddress() != null) employee.setAddress(request.getAddress());
+        if (request.getEmergencyName() != null) employee.setEmergencyName(request.getEmergencyName());
+        if (request.getEmergencyPhone() != null) employee.setEmergencyPhone(request.getEmergencyPhone());
         if (request.getDepartment() != null) employee.setDepartment(request.getDepartment());
         if (request.getDesignation() != null) employee.setDesignation(request.getDesignation());
+        if (request.getPhotoUrl() != null) employee.setPhotoUrl(request.getPhotoUrl());
         if (request.getBasicSalary() != null) employee.setBasicSalary(request.getBasicSalary());
         if (request.getEmploymentStatus() != null) employee.setEmploymentStatus(request.getEmploymentStatus());
 
         employee = employeeRepository.save(employee);
         auditService.log("UPDATE", "Employee", employee.getId(), Map.of("status", employee.getEmploymentStatus().name()));
+        return toResponse(employee);
+    }
+
+    @Transactional
+    public EmployeeResponse updatePhoto(UUID id, String photoUrl) {
+        Employee employee = findEmployee(id);
+        employee.setPhotoUrl(photoUrl);
+        employee = employeeRepository.save(employee);
+        auditService.log("UPDATE_PHOTO", "Employee", employee.getId(), Map.of("employeeCode", employee.getEmployeeCode()));
         return toResponse(employee);
     }
 
@@ -117,6 +134,10 @@ public class EmployeeService {
                 .gender(e.getGender())
                 .department(e.getDepartment())
                 .designation(e.getDesignation())
+                .address(e.getAddress())
+                .emergencyName(e.getEmergencyName())
+                .emergencyPhone(e.getEmergencyPhone())
+                .photoUrl(fileStorageService.signedUrl(e.getPhotoUrl()))
                 .joiningDate(e.getJoiningDate())
                 .employmentStatus(e.getEmploymentStatus())
                 .basicSalary(e.getBasicSalary())

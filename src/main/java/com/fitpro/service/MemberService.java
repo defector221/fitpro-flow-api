@@ -38,6 +38,7 @@ public class MemberService {
     private final MembershipPlanRepository planRepository;
     private final SecurityUtils securityUtils;
     private final AuditService auditService;
+    private final FileStorageService fileStorageService;
 
     public PageResponse<MemberResponse> list(String search, MemberStatus status, int page, int size) {
         UUID gymId = securityUtils.currentUser().getGymId();
@@ -76,6 +77,7 @@ public class MemberService {
                 .weightKg(request.getWeightKg())
                 .fitnessGoals(request.getFitnessGoals())
                 .medicalNotes(request.getMedicalNotes())
+                .photoUrl(request.getPhotoUrl())
                 .status(MemberStatus.ACTIVE)
                 .build();
 
@@ -105,10 +107,20 @@ public class MemberService {
         if (request.getWeightKg() != null) member.setWeightKg(request.getWeightKg());
         if (request.getFitnessGoals() != null) member.setFitnessGoals(request.getFitnessGoals());
         if (request.getMedicalNotes() != null) member.setMedicalNotes(request.getMedicalNotes());
+        if (request.getPhotoUrl() != null) member.setPhotoUrl(request.getPhotoUrl());
         if (request.getStatus() != null) member.setStatus(request.getStatus());
 
         member = memberRepository.save(member);
         auditService.log("UPDATE", "Member", member.getId(), Map.of("status", member.getStatus().name()));
+        return toResponse(member);
+    }
+
+    @Transactional
+    public MemberResponse updatePhoto(UUID id, String photoUrl) {
+        Member member = findMember(id);
+        member.setPhotoUrl(photoUrl);
+        member = memberRepository.save(member);
+        auditService.log("UPDATE_PHOTO", "Member", member.getId(), Map.of("memberCode", member.getMemberCode()));
         return toResponse(member);
     }
 
@@ -177,6 +189,7 @@ public class MemberService {
                 .bmi(bmi)
                 .fitnessGoals(member.getFitnessGoals())
                 .medicalNotes(member.getMedicalNotes())
+                .photoUrl(fileStorageService.signedUrl(member.getPhotoUrl()))
                 .status(member.getStatus())
                 .branchId(member.getBranchId())
                 .activePlanName(planName)

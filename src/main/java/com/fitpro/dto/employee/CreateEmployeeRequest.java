@@ -26,6 +26,7 @@ public class CreateEmployeeRequest {
     private String emergencyPhone;
     private String department;
     private String designation;
+    private String photoUrl;
 
     @NotNull
     private LocalDate joiningDate;

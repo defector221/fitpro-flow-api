@@ -42,6 +42,12 @@ fitpro:
     allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000,http://localhost:8081}
   seed:
     enabled: ${SEED_ENABLED:true}
+  storage:
+    endpoint: ${MINIO_ENDPOINT:http://localhost:19000}
+    access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    bucket: ${MINIO_BUCKET:fitflow}
+    signed-url-expiry-seconds: ${MINIO_SIGNED_URL_EXPIRY_SECONDS:3600}
 
 springdoc:
   api-docs:

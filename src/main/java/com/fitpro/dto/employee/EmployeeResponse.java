@@ -22,6 +22,10 @@ public class EmployeeResponse {
     private String gender;
     private String department;
     private String designation;
+    private String address;
+    private String emergencyName;
+    private String emergencyPhone;
+    private String photoUrl;
     private LocalDate joiningDate;
     private EmploymentStatus employmentStatus;
     private BigDecimal basicSalary;

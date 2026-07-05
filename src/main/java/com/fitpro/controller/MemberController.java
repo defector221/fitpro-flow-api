@@ -5,6 +5,7 @@ import com.fitpro.dto.common.PageResponse;
 import com.fitpro.dto.member.CreateMemberRequest;
 import com.fitpro.dto.member.MemberResponse;
 import com.fitpro.dto.member.UpdateMemberRequest;
+import com.fitpro.service.FileStorageService;
 import com.fitpro.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -23,6 +25,7 @@ import java.util.UUID;
 public class MemberController {
 
     private final MemberService memberService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping
     @Operation(summary = "List members with pagination and search")
@@ -52,5 +55,14 @@ public class MemberController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateMemberRequest request) {
         return ResponseEntity.ok(memberService.update(id, request));
+    }
+
+    @PostMapping("/{id}/photo")
+    @Operation(summary = "Upload member profile photo")
+    public ResponseEntity<MemberResponse> uploadPhoto(
+            @PathVariable UUID id,
+            @RequestPart("file") MultipartFile file) {
+        var upload = fileStorageService.storeImage(file, "members");
+        return ResponseEntity.ok(memberService.updatePhoto(id, upload.getObjectKey()));
     }
 }

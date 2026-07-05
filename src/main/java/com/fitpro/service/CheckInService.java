@@ -5,6 +5,7 @@ import com.fitpro.domain.enums.MemberStatus;
 import com.fitpro.domain.repository.*;
 import com.fitpro.dto.checkin.MemberCheckInRequest;
 import com.fitpro.dto.checkin.MemberCheckInResponse;
+import com.fitpro.dto.checkin.MemberCheckInScanRequest;
 import com.fitpro.dto.common.PageResponse;
 import com.fitpro.exception.BusinessException;
 import com.fitpro.exception.ResourceNotFoundException;
@@ -30,6 +31,7 @@ public class CheckInService {
     private final MembershipPlanRepository planRepository;
     private final SecurityUtils securityUtils;
     private final AuditService auditService;
+    private final NotificationService notificationService;
 
     private static final ZoneId ZONE = ZoneId.of("Asia/Kolkata");
 
@@ -67,7 +69,26 @@ public class CheckInService {
                 .build();
         checkIn = checkInRepository.save(checkIn);
         auditService.log("CHECK_IN", "MemberCheckIn", checkIn.getId(), null);
+        notificationService.memberCheckIn(member, checkIn.getBranchId(), checkIn.getId());
         return toResponse(checkIn, null);
+    }
+
+    @Transactional
+    public MemberCheckInResponse scan(MemberCheckInScanRequest request) {
+        var user = securityUtils.currentUser();
+        Member member = memberRepository.findByGymIdAndMemberCode(user.getGymId(), request.getMemberCode().trim())
+                .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
+
+        if ("CHECK_OUT".equalsIgnoreCase(request.getAction())) {
+            MemberCheckIn openCheckIn = checkInRepository.findLatestOpenByMemberId(member.getId())
+                    .orElseThrow(() -> new BusinessException("No open check-in found for member"));
+            return checkOut(openCheckIn.getId());
+        }
+
+        MemberCheckInRequest checkInRequest = new MemberCheckInRequest();
+        checkInRequest.setMemberId(member.getId());
+        checkInRequest.setSource(request.getSource() != null ? request.getSource() : "ID_CARD");
+        return checkIn(checkInRequest);
     }
 
     @Transactional
@@ -79,8 +100,14 @@ public class CheckInService {
         if (!member.getGymId().equals(securityUtils.currentUser().getGymId())) {
             throw new ResourceNotFoundException("Check-in not found");
         }
+        if (checkIn.getCheckOutAt() != null) {
+            throw new BusinessException("Member is already checked out");
+        }
         checkIn.setCheckOutAt(Instant.now());
-        return toResponse(checkInRepository.save(checkIn), null);
+        checkIn = checkInRepository.save(checkIn);
+        auditService.log("CHECK_OUT", "MemberCheckIn", checkIn.getId(), null);
+        notificationService.memberCheckOut(member, checkIn.getBranchId(), checkIn.getId());
+        return toResponse(checkIn, null);
     }
 
     private MemberCheckInResponse toResponse(MemberCheckIn c, Instant dayStart) {

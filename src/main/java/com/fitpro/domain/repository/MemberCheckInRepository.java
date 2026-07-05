@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface MemberCheckInRepository extends JpaRepository<MemberCheckIn, UUID> {
@@ -48,4 +49,13 @@ public interface MemberCheckInRepository extends JpaRepository<MemberCheckIn, UU
     List<MemberCheckIn> findTodayByGym(
             @Param("gymId") UUID gymId,
             @Param("start") Instant start);
+
+    @Query("""
+        SELECT c
+        FROM MemberCheckIn c
+        WHERE c.memberId = :memberId
+          AND c.checkOutAt IS NULL
+        ORDER BY c.checkInAt DESC
+        """)
+    Optional<MemberCheckIn> findLatestOpenByMemberId(@Param("memberId") UUID memberId);
 }

@@ -30,6 +30,7 @@ public class CreateMemberRequest {
     private BigDecimal weightKg;
     private String fitnessGoals;
     private String medicalNotes;
+    private String photoUrl;
     private UUID branchId;
     private UUID planId;
 }

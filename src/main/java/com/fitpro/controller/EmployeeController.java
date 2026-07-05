@@ -6,6 +6,7 @@ import com.fitpro.dto.employee.CreateEmployeeRequest;
 import com.fitpro.dto.employee.EmployeeResponse;
 import com.fitpro.dto.employee.UpdateEmployeeRequest;
 import com.fitpro.service.EmployeeService;
+import com.fitpro.service.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -23,6 +25,7 @@ import java.util.UUID;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping
     @Operation(summary = "List staff with pagination and search")
@@ -52,5 +55,14 @@ public class EmployeeController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateEmployeeRequest request) {
         return ResponseEntity.ok(employeeService.update(id, request));
+    }
+
+    @PostMapping("/{id}/photo")
+    @Operation(summary = "Upload staff profile photo")
+    public ResponseEntity<EmployeeResponse> uploadPhoto(
+            @PathVariable UUID id,
+            @RequestPart("file") MultipartFile file) {
+        var upload = fileStorageService.storeImage(file, "staff");
+        return ResponseEntity.ok(employeeService.updatePhoto(id, upload.getObjectKey()));
     }
 }

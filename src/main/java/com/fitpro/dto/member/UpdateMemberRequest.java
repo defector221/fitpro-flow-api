@@ -21,5 +21,6 @@ public class UpdateMemberRequest {
     private BigDecimal weightKg;
     private String fitnessGoals;
     private String medicalNotes;
+    private String photoUrl;
     private MemberStatus status;
 }

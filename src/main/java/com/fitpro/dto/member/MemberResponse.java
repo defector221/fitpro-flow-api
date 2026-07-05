@@ -28,6 +28,7 @@ public class MemberResponse {
     private BigDecimal bmi;
     private String fitnessGoals;
     private String medicalNotes;
+    private String photoUrl;
     private MemberStatus status;
     private UUID branchId;
     private String activePlanName;

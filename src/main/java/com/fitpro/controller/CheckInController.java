@@ -2,6 +2,7 @@ package com.fitpro.controller;
 
 import com.fitpro.dto.checkin.MemberCheckInRequest;
 import com.fitpro.dto.checkin.MemberCheckInResponse;
+import com.fitpro.dto.checkin.MemberCheckInScanRequest;
 import com.fitpro.dto.common.PageResponse;
 import com.fitpro.service.CheckInService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +39,11 @@ public class CheckInController {
     @PostMapping
     public ResponseEntity<MemberCheckInResponse> checkIn(@Valid @RequestBody MemberCheckInRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(checkInService.checkIn(request));
+    }
+
+    @PostMapping("/scan")
+    public MemberCheckInResponse scan(@Valid @RequestBody MemberCheckInScanRequest request) {
+        return checkInService.scan(request);
     }
 
     @PostMapping("/{id}/checkout")
